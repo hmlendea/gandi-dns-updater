@@ -2,6 +2,4 @@
 
 # About
 
-# About
-
 Shell script to update a Gandi.net DNS record
