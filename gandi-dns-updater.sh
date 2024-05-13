@@ -71,7 +71,7 @@ CURRENT_IP=$(get_current_ip_address)
 NEW_IP=$(get_new_ip_address)
 
 if [[ "${CURRENT_IP}" == "${NEW_IP}" ]]; then
-  echo "The IP address is already up to date."
+  echo "The IP address is already up to date (${CURRENT_IP})."
   exit 0
 fi
 
