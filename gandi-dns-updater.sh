@@ -74,7 +74,7 @@ if [[ "${CURRENT_IP}" == "${NEW_IP}" ]]; then
   exit 0
 fi
 
-echo "Updating the Glue Record IP address from '${CURRENT_IP}' to '${NEW_IP}'..."
+echo "Updating the '${FQN_DOMAIN}' DNS Record's IP address from '${CURRENT_IP}' to '${NEW_IP}'..."
 RESPONSE=$(curl -s -X PUT \
             -H "Content-Type: application/json" \
             -H "Authorization: Apikey ${API_KEY}" \
