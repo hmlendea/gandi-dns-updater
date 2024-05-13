@@ -3,7 +3,6 @@ API_KEY="${GANDI_API_KEY}"
 [ -z "${API_KEY}" ] && API_KEY=$(cat "/etc/gandi-dns-updater/api-key")
 
 FQN_DOMAIN="${1}"
-USE_LIVEDNS=true
 
 function validate_variable() {
     local VARIABLE_VALUE="${1}"
@@ -75,20 +74,12 @@ if [[ "${CURRENT_IP}" == "${NEW_IP}" ]]; then
   exit 0
 fi
 
-echo "Updating the '${FQN_DOMAIN}' DNS Record's IP address from '${CURRENT_IP}' to '${NEW_IP}'..."
-if ${USE_LIVEDNS}; then
-    RESPONSE=$(curl -s -X PUT \
-                -H "Content-Type: application/json" \
-                -H "Authorization: Apikey ${API_KEY}" \
-                -d '{"rrset_type": "A", "rrset_ttl": 3600, "rrset_values": ["'"${NEW_IP}"'"]}' \
-                "https://api.gandi.net/v5/livedns/domains/${DOMAIN}/records/${SUBDOMAIN}/A")
-else
-    RESPONSE=$(curl -s -X PUT \
-                -H "Content-Type: application/json" \
-                -H "Authorization: Apikey ${API_KEY}" \
-                -d "{\"ips\": [\"${NEW_IP}\"]}" \
-                "https://api.gandi.net/v5/domain/domains/${DOMAIN}/hosts/${SUBDOMAIN}")
-fi
+echo "Updating the '${FQN_DOMAIN}' LiveDNS Record's IP address from '${CURRENT_IP}' to '${NEW_IP}'..."
+RESPONSE=$(curl -s -X PUT \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Apikey ${API_KEY}" \
+            -d '{"rrset_type": "A", "rrset_ttl": 3600, "rrset_values": ["'"${NEW_IP}"'"]}' \
+            "https://api.gandi.net/v5/livedns/domains/${DOMAIN}/records/${SUBDOMAIN}/A")
 
 RESPONSE_MESSAGE=$(echo "${RESPONSE}" | jq -r ".message")
 echo "${RESPONSE_MESSAGE}"
