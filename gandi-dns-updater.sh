@@ -70,16 +70,16 @@ CURRENT_IP=$(get_current_ip_address)
 NEW_IP=$(get_new_ip_address)
 
 if [[ "${CURRENT_IP}" == "${NEW_IP}" ]]; then
-  echo "The IP address is already up to date."
+  echo "The IP address is already up to date (${CURRENT_IP})."
   exit 0
 fi
 
-echo "Updating the Glue Record IP address from '${CURRENT_IP}' to '${NEW_IP}'..."
+echo "Updating the '${FQN_DOMAIN}' LiveDNS Record's IP address from '${CURRENT_IP}' to '${NEW_IP}'..."
 RESPONSE=$(curl -s -X PUT \
             -H "Content-Type: application/json" \
             -H "Authorization: Apikey ${API_KEY}" \
-            -d "{\"ips\": [\"${NEW_IP}\"]}" \
-            "https://api.gandi.net/v5/domain/domains/${DOMAIN}/hosts/${SUBDOMAIN}")
+            -d '{"rrset_type": "A", "rrset_ttl": 3600, "rrset_values": ["'"${NEW_IP}"'"]}' \
+            "https://api.gandi.net/v5/livedns/domains/${DOMAIN}/records/${SUBDOMAIN}/A")
 
 RESPONSE_MESSAGE=$(echo "${RESPONSE}" | jq -r ".message")
 echo "${RESPONSE_MESSAGE}"
