@@ -78,7 +78,7 @@ echo "Updating the '${FQN_DOMAIN}' LiveDNS Record's IP address from '${CURRENT_I
 RESPONSE=$(curl -s -X PUT \
             -H "Content-Type: application/json" \
             -H "Authorization: Apikey ${API_KEY}" \
-            -d '{"rrset_type": "A", "rrset_ttl": 3600, "rrset_values": ["'"${NEW_IP}"'"]}' \
+            -d '{"rrset_type": "A", "rrset_ttl": 300, "rrset_values": ["'"${NEW_IP}"'"]}' \
             "https://api.gandi.net/v5/livedns/domains/${DOMAIN}/records/${SUBDOMAIN}/A")
 
 RESPONSE_MESSAGE=$(echo "${RESPONSE}" | jq -r ".message")
