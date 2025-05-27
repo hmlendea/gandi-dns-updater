@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -o nounset
+set -o pipefail
+
 API_KEY="${GANDI_API_KEY}"
 [ -z "${API_KEY}" ] && API_KEY=$(<"/etc/gandi-dns-updater/api-key")
 
