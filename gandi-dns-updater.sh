@@ -5,6 +5,14 @@ API_KEY="${GANDI_API_KEY}"
 
 FQN_DOMAIN="${1}"
 
+validate_variable "${API_KEY}" "API Key"
+validate_variable "${FQN_DOMAIN}" "domain name"
+
+if ! [[ "${FQN_DOMAIN}" =~ ^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$ ]]; then
+    echo "ERROR: Invalid domain format: ${FQN_DOMAIN}"
+    exit 1
+fi
+
 function validate_variable() {
     local VARIABLE_VALUE="${1}"
     local VARIABLE_FRIENDLY_NAME="${2}"
@@ -59,9 +67,6 @@ function get_new_ip_address() {
 
     echo "${IP_ADDRESS}"
 }
-
-validate_variable "${API_KEY}" "API Key"
-validate_variable "${FQN_DOMAIN}" "domain name"
 
 DOMAIN=$(rev <<< "${FQN_DOMAIN}" | cut -d '.' -f 1,2 | rev)
 SUBDOMAIN=$(rev <<< "${FQN_DOMAIN}" | cut -d '.' -f 3- | rev)
