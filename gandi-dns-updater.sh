@@ -13,6 +13,13 @@ if ! [[ "${FQN_DOMAIN}" =~ ^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$ ]]; then
     exit 1
 fi
 
+for COMMAND_DEPENDENCY in curl jq; do
+    if ! command -v "${COMMAND_DEPENDENCY}" &>/dev/null; then
+        echo "ERROR: Required command '${COMMAND_DEPENDENCY}' not found."
+        exit 2
+    fi
+done
+
 function validate_variable() {
     local VARIABLE_VALUE="${1}"
     local VARIABLE_FRIENDLY_NAME="${2}"
