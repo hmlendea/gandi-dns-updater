@@ -63,13 +63,20 @@ function get_current_ip_address() {
 
 function get_new_ip_address() {
     local IP_ADDRESS=""
+    local MAX_ATTEMPTS=5
+    local RETRY_DELAY=2
 
-    IP_ADDRESS=$(curl -sS https://api.ipify.org)
-    IP_ADDRESS=$(normalise_ip_address "${IP_ADDRESS}")
+    for ((ATTEMPT=1; ATTEMPT<=MAX_ATTEMPTS; ATTEMPT++)); do
+        IP_ADDRESS=$(curl -sS https://api.ipify.org)
+        IP_ADDRESS=$(normalise_ip_address "${IP_ADDRESS}")
+
+        [ -n "${IP_ADDRESS}" ] && break
+        sleep "${RETRY_DELAY}"
+    done
 
     if [ -z "${IP_ADDRESS}" ]; then
-        echo "The new IP could not be determined."
-        exit 1
+        echo "The new IP could not be determined after ${MAX_ATTEMPTS} attempts."
+        exit 3
     fi
 
     echo "${IP_ADDRESS}"
