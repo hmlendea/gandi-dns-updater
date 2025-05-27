@@ -4,12 +4,12 @@ set -o nounset
 set -o pipefail
 
 API_KEY="${GANDI_API_KEY}"
-[ -z "${API_KEY}" ] && API_KEY=$(<"/etc/gandi-dns-updater/api-key")
-
 FQN_DOMAIN="${1}"
 
-validate_variable "${API_KEY}" "API Key"
-validate_variable "${FQN_DOMAIN}" "domain name"
+[ -z "${API_KEY}" ] && API_KEY=$(<"/etc/gandi-dns-updater/api-key")
+
+[ -z "${API_KEY}" ] && echo "ERROR: The API Key is missing!" && exit 1
+[ -z "${FQN_DOMAIN}" ] && echo "ERROR: The domain name is missing!" && exit 1
 
 if ! [[ "${FQN_DOMAIN}" =~ ^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$ ]]; then
     echo "ERROR: Invalid domain format: ${FQN_DOMAIN}"
@@ -22,16 +22,6 @@ for COMMAND_DEPENDENCY in curl jq; do
         exit 2
     fi
 done
-
-function validate_variable() {
-    local VARIABLE_VALUE="${1}"
-    local VARIABLE_FRIENDLY_NAME="${2}"
-
-    if [ -z "${VARIABLE_VALUE}" ]; then
-        echo "ERROR: The ${VARIABLE_FRIENDLY_NAME} is missing!"
-        exit 1
-    fi
-}
 
 function normalise_ip_address() {
     local IP_ADDRESS="${1}"
