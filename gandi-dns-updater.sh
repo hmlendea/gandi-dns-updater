@@ -1,19 +1,27 @@
 #!/bin/bash
 
-API_KEY="${GANDI_API_KEY}"
-[ -z "${API_KEY}" ] && API_KEY=$(<"/etc/gandi-dns-updater/api-key")
+set -o nounset
+set -o pipefail
 
+API_KEY="${GANDI_API_KEY}"
 FQN_DOMAIN="${1}"
 
-function validate_variable() {
-    local VARIABLE_VALUE="${1}"
-    local VARIABLE_FRIENDLY_NAME="${2}"
+[ -z "${API_KEY}" ] && API_KEY=$(<"/etc/gandi-dns-updater/api-key")
 
-    if [ -z "${VARIABLE_VALUE}" ]; then
-        echo "ERROR: The ${VARIABLE_FRIENDLY_NAME} is missing!"
-        exit 1
+[ -z "${API_KEY}" ] && echo "ERROR: The API Key is missing!" && exit 1
+[ -z "${FQN_DOMAIN}" ] && echo "ERROR: The domain name is missing!" && exit 1
+
+if ! [[ "${FQN_DOMAIN}" =~ ^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$ ]]; then
+    echo "ERROR: Invalid domain format: ${FQN_DOMAIN}"
+    exit 1
+fi
+
+for COMMAND_DEPENDENCY in curl jq; do
+    if ! command -v "${COMMAND_DEPENDENCY}" &>/dev/null; then
+        echo "ERROR: Required command '${COMMAND_DEPENDENCY}' not found."
+        exit 2
     fi
-}
+done
 
 function normalise_ip_address() {
     local IP_ADDRESS="${1}"
@@ -48,20 +56,24 @@ function get_current_ip_address() {
 
 function get_new_ip_address() {
     local IP_ADDRESS=""
+    local MAX_ATTEMPTS=5
+    local RETRY_DELAY=2
 
-    IP_ADDRESS=$(curl -sS https://api.ipify.org)
-    IP_ADDRESS=$(normalise_ip_address "${IP_ADDRESS}")
+    for ((ATTEMPT=1; ATTEMPT<=MAX_ATTEMPTS; ATTEMPT++)); do
+        IP_ADDRESS=$(curl -sS https://api.ipify.org)
+        IP_ADDRESS=$(normalise_ip_address "${IP_ADDRESS}")
+
+        [ -n "${IP_ADDRESS}" ] && break
+        sleep "${RETRY_DELAY}"
+    done
 
     if [ -z "${IP_ADDRESS}" ]; then
-        echo "The new IP could not be determined."
-        exit 1
+        echo "The new IP could not be determined after ${MAX_ATTEMPTS} attempts."
+        exit 3
     fi
 
     echo "${IP_ADDRESS}"
 }
-
-validate_variable "${API_KEY}" "API Key"
-validate_variable "${FQN_DOMAIN}" "domain name"
 
 DOMAIN=$(rev <<< "${FQN_DOMAIN}" | cut -d '.' -f 1,2 | rev)
 SUBDOMAIN=$(rev <<< "${FQN_DOMAIN}" | cut -d '.' -f 3- | rev)
